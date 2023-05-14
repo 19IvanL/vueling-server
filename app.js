@@ -25,7 +25,7 @@ app.options('*', cors());
 // Define a mongoose schema
 const playerSchema = new mongoose.Schema({
     nombre: String,
-    puntos: String,
+    puntos: Number,
 });
 
 // Create a mongoose model based on the schema
@@ -39,6 +39,35 @@ app.get("/getRanking", async (req, res) => {
         console.error('Failed to retrieve users', error);
         res.status(500).json({ error: 'Failed to retrieve users' });
       }
+});
+
+app.put('/document/:nombre/addTen', async (req, res) => {
+    const nombre = req.params.nombre; // Get the value of the "nombre" parameter from the request URL
+    try {
+      // Find the document by the "nombre" field
+      const document = await Player.findOne({ nombre });
+        if (!document) {
+            const newDocument = new Player({ nombre, puntos: 10 });
+            newDocument.save((err, createdDocument) => {
+                if (err) {
+                  console.error(err);
+                  return;
+                }
+            console.log('New document created:', createdDocument);
+        });
+
+    } else{
+        // Add 10 to the "puntos" field
+        document.puntos += 10;
+        
+        // Save the updated document
+        await document.save();
+
+        res.status(200).json(document); // Return the updated document as a response
+    }
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 });
 
 app.listen(PORT, () => {
